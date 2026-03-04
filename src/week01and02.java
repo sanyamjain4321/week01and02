@@ -6,8 +6,8 @@ public class week01and02 {
 
         PlagiarismDetector detector = new PlagiarismDetector();
 
-        detector.addDocument("doc1", "this is a plagiarism detection test example", 3);
-        detector.addDocument("doc2", "this is another plagiarism example", 3);
+        detector.addDocument("doc1", "This is a plagiarism detection test example", 3);
+        detector.addDocument("doc2", "This is another plagiarism example", 3);
 
         System.out.println(detector.checkDocument("this is plagiarism example", 3));
     }
