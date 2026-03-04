@@ -6,8 +6,8 @@ public class week01and02 {
 
         DNSCache cache = new DNSCache();
 
-        System.out.println(cache.resolve("google.com"));
-        System.out.println(cache.resolve("google.com"));
+        System.out.println(cache.resolve("Google.com"));
+        System.out.println(cache.resolve("Google.com"));
     }
 }
 
