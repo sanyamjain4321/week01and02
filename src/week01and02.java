@@ -4,36 +4,44 @@ public class week01and02 {
 
     public static void main(String[] args) {
 
-        AnalyticsDashboard dashboard = new AnalyticsDashboard();
+        RateLimiter limiter = new RateLimiter();
 
-        dashboard.processEvent("/news", "user1", "google");
-        dashboard.processEvent("/news", "user2", "facebook");
-        dashboard.processEvent("/sports", "user3", "google");
-
-        System.out.println(dashboard.topPages(2));
+        System.out.println(limiter.checkRateLimit("client1"));
+        System.out.println(limiter.checkRateLimit("client1"));
     }
 }
 
-class AnalyticsDashboard {
+class TokenBucket {
 
-    Map<String, Integer> views = new HashMap<>();
+    int tokens = 1000;
+    long last = System.currentTimeMillis();
 
-    public void processEvent(String url, String user, String source) {
-        views.put(url, views.getOrDefault(url, 0) + 1);
+    synchronized boolean allow() {
+
+        long now = System.currentTimeMillis();
+
+        if (now - last > 3600000) {
+            tokens = 1000;
+            last = now;
+        }
+
+        if (tokens > 0) {
+            tokens--;
+            return true;
+        }
+
+        return false;
     }
+}
 
-    public List<String> topPages(int k) {
+class RateLimiter {
 
-        PriorityQueue<Map.Entry<String, Integer>> pq =
-                new PriorityQueue<>((a, b) -> b.getValue() - a.getValue());
+    Map<String, TokenBucket> clients = new HashMap<>();
 
-        pq.addAll(views.entrySet());
+    public boolean checkRateLimit(String client) {
 
-        List<String> result = new ArrayList<>();
+        clients.putIfAbsent(client, new TokenBucket());
 
-        while (k-- > 0 && !pq.isEmpty())
-            result.add(pq.poll().getKey());
-
-        return result;
+        return clients.get(client).allow();
     }
 }
