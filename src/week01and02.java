@@ -1,50 +1,53 @@
+import java.util.*;
+
 public class week01and02 {
 
     public static void main(String[] args) {
 
-        ParkingLot lot = new ParkingLot(10);
+        List<Transaction> list = new ArrayList<>();
 
-        System.out.println(lot.parkVehicle("ABC123"));
-        lot.exitVehicle("ABC123");
+        list.add(new Transaction(1, 500));
+        list.add(new Transaction(2, 300));
+        list.add(new Transaction(3, 200));
+
+        FraudDetector detector = new FraudDetector();
+
+        List<int[]> result = detector.twoSum(list, 500);
+
+        for (int[] pair : result) {
+            System.out.println(pair[0] + " , " + pair[1]);
+        }
     }
 }
 
-class ParkingLot {
+class Transaction {
 
-    String[] spots;
+    int id;
+    int amount;
 
-    ParkingLot(int size) {
-        spots = new String[size];
+    Transaction(int id, int amount) {
+        this.id = id;
+        this.amount = amount;
     }
+}
 
-    int hash(String plate) {
-        return Math.abs(plate.hashCode()) % spots.length;
-    }
+class FraudDetector {
 
-    int parkVehicle(String plate) {
+    public List<int[]> twoSum(List<Transaction> list, int target) {
 
-        int index = hash(plate);
+        Map<Integer, Transaction> map = new HashMap<>();
+        List<int[]> result = new ArrayList<>();
 
-        while (spots[index] != null)
-            index = (index + 1) % spots.length;
+        for (Transaction t : list) {
 
-        spots[index] = plate;
+            int complement = target - t.amount;
 
-        return index;
-    }
+            if (map.containsKey(complement))
+                result.add(new int[]{map.get(complement).id, t.id});
 
-    void exitVehicle(String plate) {
-
-        int index = hash(plate);
-
-        while (spots[index] != null) {
-
-            if (spots[index].equals(plate)) {
-                spots[index] = null;
-                return;
-            }
-
-            index = (index + 1) % spots.length;
+            map.put(t.amount, t);
         }
+
+        return result;
     }
 }
