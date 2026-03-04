@@ -4,49 +4,54 @@ public class week01and02 {
 
     public static void main(String[] args) {
 
-        DNSCache cache = new DNSCache();
+        PlagiarismDetector detector = new PlagiarismDetector();
 
-        System.out.println(cache.resolve("Google.com"));
-        System.out.println(cache.resolve("Google.com"));
+        detector.addDocument("doc1", "this is a plagiarism detection test example", 3);
+        detector.addDocument("doc2", "this is another plagiarism example", 3);
+
+        System.out.println(detector.checkDocument("this is plagiarism example", 3));
     }
 }
 
-class DNSEntry {
+class PlagiarismDetector {
 
-    String ip;
-    long expiry;
+    Map<String, Set<String>> index = new HashMap<>();
 
-    DNSEntry(String ip, int ttl) {
-        this.ip = ip;
-        this.expiry = System.currentTimeMillis() + ttl * 1000;
+    public void addDocument(String id, String text, int n) {
+
+        String[] words = text.split(" ");
+
+        for (int i = 0; i <= words.length - n; i++) {
+
+            String gram = "";
+
+            for (int j = i; j < i + n; j++)
+                gram += words[j] + " ";
+
+            index.computeIfAbsent(gram, k -> new HashSet<>()).add(id);
+        }
     }
 
-    boolean expired() {
-        return System.currentTimeMillis() > expiry;
-    }
-}
+    public Map<String, Integer> checkDocument(String text, int n) {
 
-class DNSCache {
+        Map<String, Integer> result = new HashMap<>();
 
-    private Map<String, DNSEntry> cache = new HashMap<>();
+        String[] words = text.split(" ");
 
-    public String resolve(String domain) {
+        for (int i = 0; i <= words.length - n; i++) {
 
-        if (cache.containsKey(domain)) {
+            String gram = "";
 
-            DNSEntry entry = cache.get(domain);
+            for (int j = i; j < i + n; j++)
+                gram += words[j] + " ";
 
-            if (!entry.expired()) {
-                return entry.ip;
+            if (index.containsKey(gram)) {
+
+                for (String doc : index.get(gram))
+                    result.put(doc, result.getOrDefault(doc, 0) + 1);
             }
-
-            cache.remove(domain);
         }
 
-        String ip = "172.217.14." + new Random().nextInt(255);
-
-        cache.put(domain, new DNSEntry(ip, 300));
-
-        return ip;
+        return result;
     }
 }
