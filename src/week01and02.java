@@ -4,50 +4,53 @@ public class week01and02 {
 
     public static void main(String[] args) {
 
-        List<Transaction> list = new ArrayList<>();
+        MultiLevelCache cache = new MultiLevelCache();
 
-        list.add(new Transaction(1, 500));
-        list.add(new Transaction(2, 300));
-        list.add(new Transaction(3, 200));
+        cache.database.put("video1", "Movie Data");
 
-        FraudDetector detector = new FraudDetector();
-
-        List<int[]> result = detector.twoSum(list, 500);
-
-        for (int[] pair : result) {
-            System.out.println(pair[0] + " , " + pair[1]);
-        }
+        System.out.println(cache.getVideo("video1"));
+        System.out.println(cache.getVideo("video1"));
     }
 }
 
-class Transaction {
+class LRUCache<K, V> extends LinkedHashMap<K, V> {
 
-    int id;
-    int amount;
+    int capacity;
 
-    Transaction(int id, int amount) {
-        this.id = id;
-        this.amount = amount;
+    LRUCache(int capacity) {
+        super(capacity, 0.75f, true);
+        this.capacity = capacity;
+    }
+
+    protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+        return size() > capacity;
     }
 }
 
-class FraudDetector {
+class MultiLevelCache {
 
-    public List<int[]> twoSum(List<Transaction> list, int target) {
+    LRUCache<String, String> L1 = new LRUCache<>(10000);
+    LRUCache<String, String> L2 = new LRUCache<>(100000);
 
-        Map<Integer, Transaction> map = new HashMap<>();
-        List<int[]> result = new ArrayList<>();
+    Map<String, String> database = new HashMap<>();
 
-        for (Transaction t : list) {
+    public String getVideo(String id) {
 
-            int complement = target - t.amount;
+        if (L1.containsKey(id))
+            return L1.get(id);
 
-            if (map.containsKey(complement))
-                result.add(new int[]{map.get(complement).id, t.id});
+        if (L2.containsKey(id)) {
 
-            map.put(t.amount, t);
+            String v = L2.get(id);
+            L1.put(id, v);
+            return v;
         }
 
-        return result;
+        String v = database.get(id);
+
+        if (v != null)
+            L2.put(id, v);
+
+        return v;
     }
 }
