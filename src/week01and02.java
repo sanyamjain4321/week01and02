@@ -4,44 +4,64 @@ public class week01and02 {
 
     public static void main(String[] args) {
 
-        RateLimiter limiter = new RateLimiter();
+        AutocompleteSystem auto = new AutocompleteSystem();
 
-        System.out.println(limiter.checkRateLimit("client1"));
-        System.out.println(limiter.checkRateLimit("client1"));
+        auto.insert("java");
+        auto.insert("javascript");
+        auto.insert("java tutorial");
+
+        System.out.println(auto.searchPrefix("jav"));
     }
 }
 
-class TokenBucket {
+class TrieNode {
 
-    int tokens = 1000;
-    long last = System.currentTimeMillis();
-
-    synchronized boolean allow() {
-
-        long now = System.currentTimeMillis();
-
-        if (now - last > 3600000) {
-            tokens = 1000;
-            last = now;
-        }
-
-        if (tokens > 0) {
-            tokens--;
-            return true;
-        }
-
-        return false;
-    }
+    Map<Character, TrieNode> children = new HashMap<>();
+    boolean end;
 }
 
-class RateLimiter {
+class AutocompleteSystem {
 
-    Map<String, TokenBucket> clients = new HashMap<>();
+    TrieNode root = new TrieNode();
 
-    public boolean checkRateLimit(String client) {
+    public void insert(String word) {
 
-        clients.putIfAbsent(client, new TokenBucket());
+        TrieNode node = root;
 
-        return clients.get(client).allow();
+        for (char c : word.toCharArray()) {
+
+            node.children.putIfAbsent(c, new TrieNode());
+            node = node.children.get(c);
+        }
+
+        node.end = true;
+    }
+
+    public List<String> searchPrefix(String prefix) {
+
+        TrieNode node = root;
+
+        for (char c : prefix.toCharArray()) {
+
+            if (!node.children.containsKey(c))
+                return new ArrayList<>();
+
+            node = node.children.get(c);
+        }
+
+        List<String> result = new ArrayList<>();
+
+        dfs(node, prefix, result);
+
+        return result;
+    }
+
+    private void dfs(TrieNode node, String word, List<String> result) {
+
+        if (node.end)
+            result.add(word);
+
+        for (char c : node.children.keySet())
+            dfs(node.children.get(c), word + c, result);
     }
 }
