@@ -4,53 +4,35 @@ public class week01and02 {
 
     public static void main(String[] args) {
 
-        PlagiarismDetector detector = new PlagiarismDetector();
+        AnalyticsDashboard dashboard = new AnalyticsDashboard();
 
-        detector.addDocument("doc1", "This is a plagiarism detection test example", 3);
-        detector.addDocument("doc2", "This is another plagiarism example", 3);
+        dashboard.processEvent("/news", "user1", "google");
+        dashboard.processEvent("/news", "user2", "facebook");
+        dashboard.processEvent("/sports", "user3", "google");
 
-        System.out.println(detector.checkDocument("this is plagiarism example", 3));
+        System.out.println(dashboard.topPages(2));
     }
 }
 
-class PlagiarismDetector {
+class AnalyticsDashboard {
 
-    Map<String, Set<String>> index = new HashMap<>();
+    Map<String, Integer> views = new HashMap<>();
 
-    public void addDocument(String id, String text, int n) {
-
-        String[] words = text.split(" ");
-
-        for (int i = 0; i <= words.length - n; i++) {
-
-            String gram = "";
-
-            for (int j = i; j < i + n; j++)
-                gram += words[j] + " ";
-
-            index.computeIfAbsent(gram, k -> new HashSet<>()).add(id);
-        }
+    public void processEvent(String url, String user, String source) {
+        views.put(url, views.getOrDefault(url, 0) + 1);
     }
 
-    public Map<String, Integer> checkDocument(String text, int n) {
+    public List<String> topPages(int k) {
 
-        Map<String, Integer> result = new HashMap<>();
+        PriorityQueue<Map.Entry<String, Integer>> pq =
+                new PriorityQueue<>((a, b) -> b.getValue() - a.getValue());
 
-        String[] words = text.split(" ");
+        pq.addAll(views.entrySet());
 
-        for (int i = 0; i <= words.length - n; i++) {
+        List<String> result = new ArrayList<>();
 
-            String gram = "";
-
-            for (int j = i; j < i + n; j++)
-                gram += words[j] + " ";
-
-            if (index.containsKey(gram)) {
-
-                for (String doc : index.get(gram))
-                    result.put(doc, result.getOrDefault(doc, 0) + 1);
-            }
-        }
+        while (k-- > 0 && !pq.isEmpty())
+            result.add(pq.poll().getKey());
 
         return result;
     }
